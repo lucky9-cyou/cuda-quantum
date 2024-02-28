@@ -11,8 +11,6 @@
 #include "cudaq/Optimizer/Transforms/Passes.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Transforms/Passes.h"
-#include <mlir/Pass/PassRegistry.h>
-#include <string>
 
 using namespace mlir;
 
