@@ -11,6 +11,8 @@
 #include "cudaq/Optimizer/Transforms/Passes.h"
 #include "mlir/Pass/PassManager.h"
 #include "mlir/Transforms/Passes.h"
+#include <mlir/Pass/PassRegistry.h>
+#include <string>
 
 using namespace mlir;
 
@@ -57,6 +59,17 @@ static void addIonQPipeline(OpPassManager &pm) {
   pm.addPass(createBasisConversionPass(options));
 }
 
+// static void addEmulatePipeline(OpPassManager &pm) {
+//   using namespace cudaq::opt;
+//   std::string basis[] = {
+//     "x", "y", "z", "h", "rx", "ry",
+//     "rz", "s", "t"
+//   };
+//   BasisConversionPassOptions options;
+//   options.basis = basis;
+//   pm.addPass(createBasisConversionPass(options));
+// }
+
 void cudaq::opt::registerTargetPipelines() {
   PassPipelineRegistration<>("oqc-gate-set-mapping",
                              "Convert kernels to OQC gate set.",
@@ -70,4 +83,7 @@ void cudaq::opt::registerTargetPipelines() {
   PassPipelineRegistration<>("ionq-gate-set-mapping",
                              "Convert kernels to IonQ gate set.",
                              addIonQPipeline);
+  // PassPipelineRegistration<>("emulate-gate-set-mapping",
+  //                           "Covert kernels to emulate gate set.",
+  //                           addEmulatePipeline);
 }

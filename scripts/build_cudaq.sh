@@ -9,15 +9,15 @@
 # ============================================================================ #
 
 # Usage:
-# bash scripts/build_cudaq.sh
+# NINJA_THREAD=20 bash scripts/build_cudaq.sh
 # -or-
-# bash scripts/build_cudaq.sh -c DEBUG
+# NINJA_THREAD=20 bash scripts/build_cudaq.sh -c DEBUG
 # -or-
-# LLVM_INSTALL_PREFIX=/path/to/dir bash scripts/build_cudaq.sh
+# NINJA_THREAD=20 LLVM_INSTALL_PREFIX=/path/to/dir bash scripts/build_cudaq.sh
 # -or-
-# CUDAQ_INSTALL_PREFIX=/path/for/installing/cudaq LLVM_INSTALL_PREFIX=/path/to/dir bash scripts/build_cudaq.sh
+# NINJA_THREAD=20 CUDAQ_INSTALL_PREFIX=/path/for/installing/cudaq LLVM_INSTALL_PREFIX=/path/to/dir bash scripts/build_cudaq.sh
 # -or-
-# CUQUANTUM_INSTALL_PREFIX=/path/to/dir bash scripts/build_cudaq.sh
+# NINJA_THREAD=20 CUQUANTUM_INSTALL_PREFIX=/path/to/dir bash scripts/build_cudaq.sh
 #
 # Prerequisites:
 # - git, ninja-build, python3, libpython3-dev, libstdc++-12-dev (all available via apt install)
@@ -69,7 +69,8 @@ repo_root=$(cd "$this_file_dir" && git rev-parse --show-toplevel)
 
 # Prepare the build directory
 mkdir -p "$CUDAQ_INSTALL_PREFIX/bin"
-mkdir -p "$working_dir/build" && cd "$working_dir/build" && rm -rf * 
+# mkdir -p "$working_dir/build" && cd "$working_dir/build" && rm -rf * 
+mkdir -p "$working_dir/build" && cd "$working_dir/build"
 mkdir -p logs && rm -rf logs/*
 
 if $install_prereqs; then
@@ -127,9 +128,9 @@ cmake_args="-G Ninja "$repo_root" \
   -DNVQPP_LD_PATH="$NVQPP_LD_PATH" \
   -DCMAKE_CUDA_HOST_COMPILER="$CXX" \
   -DCMAKE_BUILD_TYPE=$build_configuration \
-  -DCUDAQ_ENABLE_PYTHON=${CUDAQ_PYTHON_SUPPORT:-TRUE} \
-  -DCUDAQ_BUILD_TESTS=${CUDAQ_BUILD_TESTS:-TRUE} \
-  -DCUDAQ_TEST_MOCK_SERVERS=${CUDAQ_BUILD_TESTS:-TRUE} \
+  -DCUDAQ_ENABLE_PYTHON=${CUDAQ_PYTHON_SUPPORT:-FALSE} \
+  -DCUDAQ_BUILD_TESTS=${CUDAQ_BUILD_TESTS:-FLASE} \
+  -DCUDAQ_TEST_MOCK_SERVERS=${CUDAQ_BUILD_TESTS:-FLASE} \
   -DCMAKE_COMPILE_WARNING_AS_ERROR=${CUDAQ_WERROR:-ON}"
 # Note that even though we specify CMAKE_CUDA_HOST_COMPILER above, it looks like the 
 # CMAKE_CUDA_COMPILER_WORKS checks do *not* use that host compiler unless the CUDAHOSTCXX 
@@ -153,10 +154,10 @@ function fail_gracefully {
 }
 
 if $verbose; then 
-  ninja install || fail_gracefully
+  ninja install -j $NINJA_THREAD || fail_gracefully
 else
   echo "The progress of the build is being logged to $logs_dir/ninja_output.txt."
-  ninja install 2> "$logs_dir/ninja_error.txt" 1> "$logs_dir/ninja_output.txt" || fail_gracefully
+  ninja install -j $NINJA_THREAD 2> "$logs_dir/ninja_error.txt" 1> "$logs_dir/ninja_output.txt" || fail_gracefully
 fi
 
 cp "$repo_root/LICENSE" "$CUDAQ_INSTALL_PREFIX/LICENSE"
