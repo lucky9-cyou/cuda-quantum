@@ -1,6 +1,6 @@
 // Compile and run with:
 // ```
-// nvq++ --target emulate --emulate-url=https://127.0.0.1:3000
+// nvq++ --target emulate --emulate-url=http://127.0.0.1:3000
 // --disable-qubit-mapping emulate.cpp -o out.x && CUDAQ_LOG_LEVEL=info ./out.x
 // ```
 // Assumes a valid set of credentials have been stored.

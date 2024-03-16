@@ -85,9 +85,9 @@ EmulateServerHelper::createJob(std::vector<KernelExecution> &circuitCodes) {
   for (auto &circuitCode : circuitCodes) {
     // Construct the job itself
     ServerMessage j;
-    j["qasm"] = circuitCode.code;
+    j["code"] = circuitCode.code;
     j["shots"] = shots;
-    j["format"] = "json";
+    j["agent"] = "qasmsim";
     messages.push_back(j);
   }
   // Get the headers
@@ -137,24 +137,8 @@ EmulateServerHelper::processResults(ServerMessage &postJobResponse,
   // and its corresponding vector holds the measurement results in each shot:
   // {
   //   "Memory": {
-  //     "var6": {
-  //       "0": {
-  //         "Bin value": "0b00000",
-  //         "Count": 510,
-  //         "Hex value": "0x0",
-  //         "Int value": 0
-  //       },
-  //       "1": {
-  //         "Bin value": "0b11111",
-  //         "Count": 490,
-  //         "Hex value": "0x1f",
-  //         "Int value": 31
-  //       }
-  //     }
-  //   },
-  //   "Times": {
-  //     "Parsing": 7,
-  //     "Simulation": 47
+  //     "00": 46,
+  //     "11": 54
   //   },
   //   "status": "succeeded",
   //   "task_id": "97f93288-5faf-4df5-b9c4-31340fd13fdc"
@@ -163,19 +147,11 @@ EmulateServerHelper::processResults(ServerMessage &postJobResponse,
 
   cudaq::info("Results message: {}", results.dump());
 
-  std::vector<ExecutionResult> srs;
-
-  // Populate individual registers' results into srs
-  for (auto &[registerName, registerResult] : results.items()) {
-    CountsDictionary thisRegCounts;
-    for (auto &[key, value] : registerResult.items()) {
-      thisRegCounts[value["Bin value"].get<std::string>()] =
-          value["Count"].get<size_t>();
-    }
-    srs.emplace_back(thisRegCounts, registerName);
-  }
-
-  return sample_result(srs);
+  CountsDictionary countsDict;
+  for (auto &element : results.items())
+    countsDict[element.key()] = element.value();
+  ExecutionResult executionResult{countsDict, GlobalRegisterName};
+  return cudaq::sample_result(executionResult);
 }
 
 std::map<std::string, std::string>
